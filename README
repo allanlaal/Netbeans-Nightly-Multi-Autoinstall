@@ -1,0 +1,5 @@
+Requirements for running this script:
+- unzip
+- lynx
+- Oracle Java 1.6 (check [http://askubuntu.com/questions/67909/how-do-i-install-oracles-jdk-6])
+- ant
