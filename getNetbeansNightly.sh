@@ -1,3 +1,4 @@
+#!/bin/bash
 echo "Starting compilation..."
 DOWN_DIR=~/Downloads/netbeans-nightly
 NETBEANS_ZIP=netbeans-nightly.zip
