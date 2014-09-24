@@ -28,10 +28,12 @@ then
 
 	echo "Building Netbeans..."
 	export ANT_OPTS="-Xmx256m -XX:MaxPermSize=96m"
+	mkdir -p cd $NETBEANS_NIGHTLY_DIR/nbbuild
 	cd $NETBEANS_NIGHTLY_DIR/nbbuild
 	ant | tee > build.log
 
 	ln -s ~/bin/nbdev $NETBEANS_NIGHTLY_DIR/nbbuild/netbeans/bin/netbeans
+
 else
 	echo "copy the contents of config.example.sh to config.sh and modify the paths in that file as needed"
 fi
