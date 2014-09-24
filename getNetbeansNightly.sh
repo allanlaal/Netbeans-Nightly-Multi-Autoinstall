@@ -34,6 +34,12 @@ then
 
 	ln -s ~/bin/nbdev $NETBEANS_NIGHTLY_DIR/nbbuild/netbeans/bin/netbeans
 
+
+	echo "All done!"
+	
+	echo "Current space usage: "
+	du -hc -d 1 $NETBEANS_NIGHTLY_DIR
+
 else
 	echo "copy the contents of config.example.sh to config.sh and modify the paths in that file as needed"
 fi
