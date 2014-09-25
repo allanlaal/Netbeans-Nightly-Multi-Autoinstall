@@ -27,7 +27,8 @@ then
 
 #	http://bits.netbeans.org/download/trunk/nightly/latest/bundles/
 
-	FILE_URL=`lynx -dump "$BUNDLE_URL/" | /bin/grep $BUNDLE_URL | /bin/grep $TYPE | /usr/bin/awk '{print $2}' | /usr/bin/tail -1`
+
+	FILE_URL=`lynx -dump "$BUNDLE_URL/" | /bin/grep $BUNDLE_URL | /bin/grep "[0-9]\+\-${TYPE}" | /usr/bin/awk '{print $2}' | /usr/bin/tail -1`
 	FILE_NAME=${FILE_URL/$BUNDLE_URL\//}
 	BUILD_NR=`/bin/echo "$FILE_NAME" | /bin/grep -o "[0-9]\+"`
 	FUTURE_DIR="$NETBEANS_NIGHTLY_DIR/netbeans-autonightly-$BUILD_NR"
