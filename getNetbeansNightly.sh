@@ -1,6 +1,12 @@
 #!/bin/bash
 echo "
-@desc Install a new Netbeans nightly copy and move the older links 1 day to the past
+@desc Netbeans Nightly Multi Autoinstall script
+Install a new Netbeans nightly copy and move the older links 1 day to the past
+
+optional arguments:
+--keep-open - setting this will keep the terminal window open
+
+
 @example when todays nightly is already installed, it overwrites it cleanly
 @version 2.0 for Netbeans 8+
 @author Allan Laal <allan@permanent.ee>
@@ -74,4 +80,15 @@ then
 
 else
 	/bin/echo "copy the contents of config.example.sh to config.sh and modify the paths in that file as needed"
+fi
+
+
+# if --keep-open argument is set, keep the window open
+if [ "$1" = "--keep-open" ]; then
+	printf "Press any key to continue or 'CTRL+C' to exit : "
+	(tty_state=$(stty -g)
+	stty -icanon
+	LC_ALL=C dd bs=1 count=1 >/dev/null 2>&1
+	stty "$tty_state"
+	) </dev/tty
 fi
