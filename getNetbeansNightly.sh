@@ -1,7 +1,12 @@
 #!/bin/bash
-echo "Starting compilation..."
+echo "
+@desc Install a new Netbeans nightly copy and move the older links 1 day to the past
+@example when todays nightly is already installed, it overwrites it cleanly
+@version 2.0 for Netbeans 8+
+@author Allan Laal <allan@permanent.ee>
+"
 
-echo "Loading config file..."
+/bin/echo "Loading config file"
 SOURCE="${BASH_SOURCE[0]}"
 while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
   DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
@@ -14,32 +19,58 @@ if [ -f "$DIR/config.sh" ]
 then
 	source "$DIR/config.sh"
 
-
-	echo "Setting up directories..."
-	mkdir -p $DOWN_DIR
+	/bin/echo "Setting up directories"
+	mkdir -p $TMP_DIR
 	mkdir -p $NETBEANS_NIGHTLY_DIR
 
-	echo "Downloading Netbeans Nightly Build..."
-	cd $DOWN_DIR
-	lynx -dump http://bits.netbeans.org/download/trunk/nightly/latest/zip | grep http://bits.netbeans.org/download/trunk/nightly/latest/zip/netbeans | awk '{print $2}' | tail -1 | wget -i - --output-document=$DOWN_DIR/$NETBEANS_ZIP
+	/bin/echo "Downloading Netbeans Nightly Build"
 
-	echo "Unzipping Netbeans..."
-	unzip -uo $DOWN_DIR/$NETBEANS_ZIP -d $NETBEANS_NIGHTLY_DIR
+#	http://bits.netbeans.org/download/trunk/nightly/latest/bundles/
 
-	echo "Building Netbeans..."
-	export ANT_OPTS="-Xmx256m -XX:MaxPermSize=96m"
-	mkdir -p cd $NETBEANS_NIGHTLY_DIR/nbbuild
-	cd $NETBEANS_NIGHTLY_DIR/nbbuild
-	ant | tee > build.log
-
-	ln -s ~/bin/nbdev $NETBEANS_NIGHTLY_DIR/nbbuild/netbeans/bin/netbeans
-
-
-	echo "All done!"
+	FILE_URL=`lynx -dump "$BUNDLE_URL/" | /bin/grep $BUNDLE_URL | /bin/grep $TYPE | /usr/bin/awk '{print $2}' | /usr/bin/tail -1`
+	FILE_NAME=${FILE_URL/$BUNDLE_URL\//}
+	BUILD_NR=`/bin/echo "$FILE_NAME" | /bin/grep -o "[0-9]\+"`
+	FUTURE_DIR="$NETBEANS_NIGHTLY_DIR/netbeans-autonightly-$BUILD_NR"
+	/bin/echo "installer url: $FILE_URL"
+	/bin/echo "installer filename: $FILE_NAME"
+	/bin/echo "build: $BUILD_NR"
+	/bin/echo "install directory: $FUTURE_DIR"
 	
-	echo "Current space usage: "
-	du -hc -d 1 $NETBEANS_NIGHTLY_DIR
+	TMP_FILE="$TMP_DIR/$FILE_NAME"
+	/bin/rm -f TMP_FILE
+	/usr/bin/wget -t 1 "${FILE_URL}" -O "${TMP_FILE}" --
+
+	# remove old dir and (expecting one) link pointing to it (if exists) and install Netbeans:
+	/bin/rm -rf $FUTURE_DIR
+	/bin/ls -l | /bin/grep "$FUTURE_DIR" | /bin/grep $SYMLINK_PREFIX | /usr/bin/awk '{print $9}' | /usr/bin/xargs rm -rf
+	# TODO: delete >1 symlinks [low]
+
+	
+	/bin/echo "Installing Netbeans nightly $BUILD_NR to $FUTURE_DIR"
+	/bin/mkdir -p $FUTURE_DIR
+	`/bin/chmod +x $TMP_FILE`
+	`$TMP_FILE --silent "-J-Dnb-base.installation.location=$FUTURE_DIR"`
+
+	# move all symlinks forward:
+	# hardcoded to 1000 symlinks, very unrealistic someone is gonna hit that
+	/bin/rm -f "$SYMLINK_PREFIX_1000"
+	for CURRENT in {999..0..-1}; do
+		OLDER=$(($CURRENT + 1))
+		/bin/mv -f "${NETBEANS_NIGHTLY_DIR}/${SYMLINK_PREFIX}${CURRENT}" "${NETBEANS_NIGHTLY_DIR}/${SYMLINK_PREFIX}${OLDER}" 2>/dev/null
+		#echo "/bin/mv -f ${NETBEANS_NIGHTLY_DIR}/${SYMLINK_PREFIX}${CURRENT} ${NETBEANS_NIGHTLY_DIR}/${SYMLINK_PREFIX}${OLDER}"
+	done
+
+	/bin/ln -s "${FUTURE_DIR}" "${NETBEANS_NIGHTLY_DIR}/${SYMLINK_PREFIX}0"
+	echo "/bin/ln -s ${FUTURE_DIR} '${NETBEANS_NIGHTLY_DIR}/${SYMLINK_PREFIX}0'"
+
+	# remove the downloaded file to keep ./tmp empty
+	/bin/rm -f $TMP_FILE
+
+	/bin/echo "All done!"
+	
+	/bin/echo "Current space usage: "
+	/usr/bin/du -hc -d 1 $NETBEANS_NIGHTLY_DIR
 
 else
-	echo "copy the contents of config.example.sh to config.sh and modify the paths in that file as needed"
+	/bin/echo "copy the contents of config.example.sh to config.sh and modify the paths in that file as needed"
 fi
